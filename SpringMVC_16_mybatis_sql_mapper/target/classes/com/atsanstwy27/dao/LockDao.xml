@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 自定義關聯查詢 -->
+<mapper namespace="com.atkjs927.dao.LockDao">
+
+    <!-- public Lock getLockByIdSimple(Integer id); -->
+    <!-- id	lockname -->
+    <select id="getLockByIdByStep" resultMap="mylockstep">
+        select * from t_lock where id=#{id}
+    </select>
+    <resultMap id="mylockstep" type="com.atkjs927.bean.Lock">
+        <id property="id" column="id"/>
+        <result property="lockName" column="lockname"/>
+        <collection property="keys"
+            select="com.atkjs927.dao.KeyDao.getKeysByLockId"
+            column="id"></collection>
+    </resultMap>
+
+    <!-- public Lock getLockByIdSimple(Integer id); -->
+    <select id="getLockByIdSimple" resultType="com.atkjs927.bean.Lock">
+        select * from t_lock where id=#{id}
+    </select>
+
+
+    <select id="getLockById" resultMap="myLock">
+        SELECT tl.*, tk.id kid, tk.keyname, tk.lockid
+        FROM   t_lock tl  LEFT JOIN t_key tk ON tl.id = tk.lockid
+        WHERE  tl.id = #{id}
+    </select>
+
+    <!--
+        private Integer id;
+        private String lockName;
+        private List<Key> keys;
+
+        SQL:
+        id	lockname	kid	keyname	lockid
+    -->
+    <resultMap id="myLock" type="com.atkjs927.bean.Lock">
+        <id property="id" column="id"/>
+        <result property="lockName" column="lockname"/>
+        <!--
+        collection：定義集合元素的封裝
+            property="":指定哪個屬性是集合屬性
+            javaType：指定對像類型；association
+            ofType=""：指定集合裡面元素的類型
+        -->
+        <collection property="keys" ofType="com.atkjs927.bean.Key">
+            <id property="id" column="kid"/>
+            <result property="keyName" column="keyname"/>
+            <association property="lock" javaType="com.atkjs927.bean.Lock">
+                <id property="id" column="id"/>
+                <result property="lockName" column="lockname"/>
+            </association>
+        </collection>
+    </resultMap>
+
+</mapper>

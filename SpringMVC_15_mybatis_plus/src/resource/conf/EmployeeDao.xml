@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace：名稱空間，寫接口的全類名，相當於告訴MyBatis是實現哪個接口 -->
+<mapper namespace="com.atkjs927.dao.EmployeeDao">
+    <!-- public Employee getEmpById(Integer id); -->
+    <!-- select標籤用來定義一個查詢操作 ，
+         id:方法名，相當於這個配置是對於某個方法的實現
+         resultType：指定方法運行後的返回值類型，查詢操作必須指定的
+         #{屬性名}:代表取出傳遞過來的某個參數的值-->
+
+    <!--    public Employee getEmpById(Integer id);-->
+     <select id="getEmpById" resultType="com.atkjs927.bean.Employee">
+    <!-- Alias <select id="getEmpById" resultType="EMP"> -->
+    <!--<select id="getEmpById" resultType="Employee">-->
+    <!--<select id="getEmpById" resultType="anno_emp">-->
+        select * from t_employee where id=#{id}
+    </select>
+
+    <!--    public int updateEmployee(Employee employee);-->
+    <update id="updateEmployee">
+        update t_employee
+        set empname=#{empName}, gender=#{gender}, email=#{email}
+        where id=#{id}
+    </update>
+
+    <!--    public int deleteEmployee(Integer id);-->
+    <delete id="deleteEmployee">
+        delete from t_employee where id=#{id}
+    </delete>
+
+    <!--    public int insertEmployee(Employee employee);-->
+    <insert id="insertEmployee">
+        insert into t_employee(empname, gender, email)
+        values(#{empName}, #{gender}, #{email})
+    </insert>
+
+</mapper>

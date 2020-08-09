@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd">
+
+    <!--對應src下的報名，需要自己新建-->
+    <context:component-scan base-package="com.atkjs927" />
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!-- 這個配置是配置JSP頁面的位置，按照你自己的配置來配 -->
+        <property name="prefix" value="/WEB-INF/pages/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <!-- 讓SpringMVC管理國際化資源文件 ,配置一個資源文件管理器-->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="defaultEncoding" value="UTF-8" />
+        <!-- basename指定基礎名 -->
+        <property name="basename" value="resources.conf.i18n"></property>
+        <property name="useCodeAsDefaultMessage" value="true" />
+    </bean>
+
+    <!-- 發送一個請求，直接來到WEB-INF下的login頁面
+     mvc名稱空間有一個請求映射標籤
+     直接配置響應的頁面，無需經過控制器來執行結果
+ -->
+    <!-- path指定哪個請求
+         view-name：指定映射哪個視圖
+     -->
+    <mvc:view-controller path="/toLoginPage" view-name="login"/>
+    <!-- 開啟MVC註解驅動模式 -->
+    <mvc:annotation-driven></mvc:annotation-driven>
+
+    <bean class="com.atkjs927.view.MyMeiViewResolyer">
+        <property name="order"  value="1"></property>
+    </bean>
+    <!--已知InternalResourceViewResolver默認的優先級，private int order=Integer.MAX_VALUE"-->
+
+</beans>

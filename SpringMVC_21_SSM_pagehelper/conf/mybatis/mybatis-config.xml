@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <settings>
+        <setting name="logImpl" value="LOG4J2"/>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 延遲加載的全局開關。當開啟時，所有關聯對象都會延遲加載，默認為false  -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- 設置屬性按需加載 -->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!--開啟全局緩存-->
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor"></plugin>
+    </plugins>
+</configuration>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+    <context id="DB2Tables" targetRuntime="MyBatis3">
+
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
+                        connectionURL="***************/mybatis_test"
+                        userId="XXXXX"
+                        password="XXXXX">
+        </jdbcConnection>
+
+        <javaTypeResolver >
+            <property name="forceBigDecimals" value="false" />
+        </javaTypeResolver>
+
+        <!-- javaModelGenerator: 生成pojo
+        targetPackage: 指定生成的pojo放在哪個包
+        targetProject: 放在哪個工程下
+        -->
+        <javaModelGenerator targetPackage="com.atkjs927.bean"
+                            targetProject=".\src">
+            <property name="enableSubPackages" value="true" />
+            <property name="trimStrings" value="true" />
+        </javaModelGenerator>
+
+        <!-- sqlMapGenerator: sql映射文件生成器,指定xml生成的地方-->
+        <sqlMapGenerator targetPackage="com.atkjs927.dao"
+                         targetProject=".\conf">
+            <property name="enableSubPackages" value="true" />
+        </sqlMapGenerator>
+
+        <!-- javaClientGenerator: dao接口生成-->
+        <javaClientGenerator type="XMLMAPPER"
+                             targetPackage="com.atkjs927.dao"
+                             targetProject=".\src">
+            <property name="enableSubPackages" value="true" />
+        </javaClientGenerator>
+
+        <!-- 指定要逆向生成哪張表 -->
+        <table tableName="t_cat" domainObjectName="Cat" ></table>
+        <table tableName="t_employee" domainObjectName="Employee" ></table>
+        <table tableName="t_teacher" domainObjectName="Teacher" ></table>
+
+    </context>
+</generatorConfiguration>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties resource="dbconfig.properties"></properties>
+
+    <settings>
+        <setting name="logImpl" value="LOG4J2"/>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 延遲加載的全局開關。當開啟時，所有關聯對象都會延遲加載，默認為false  -->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!-- 設置屬性按需加載 -->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!--開啟全局緩存-->
+        <setting name="cacheEnabled" value="true"/>
+    </settings>
+
+    <environments default="development">
+        <environment id="development">
+            <!--事務管理器-->
+            <transactionManager type="JDBC"/>
+            <!-- 配置連接池 -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!-- 引用我們自己編寫的每一個接口的實現文件 -->
+    <mappers>
+        <package name="com.atkjs927.dao"/>
+    </mappers>
+
+
+</configuration>

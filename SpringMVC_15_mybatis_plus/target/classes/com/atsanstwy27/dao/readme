@@ -1,0 +1,4 @@
+此目錄的配置文件要搭配
+mybatis-config.xml的<package name="com.atkjs927.dao"/>使用
+
+編譯之後會跟source的dao放置在同級目錄，因此可以這樣使用

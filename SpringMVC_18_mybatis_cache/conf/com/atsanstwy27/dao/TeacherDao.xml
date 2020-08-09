@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atkjs927.dao.TeacherDao">
+    <!--使用默認二級緩存<cache></cache>-->
+    <!--自定義緩存-->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+
+    <resultMap id="teacherMap" type="com.atkjs927.bean.Teacher">
+        <id property="id" column="id"/>
+        <result property="address" column="address"/>
+        <result property="birth" column="birth_date"/>
+        <result property="course" column="class_name"/>
+        <result property="name" column="teacherName"/>
+    </resultMap>
+
+    <!--抽取可重用的sql語句-->
+    <sql id="selectSql">select * from t_teacher</sql>
+    <!-- public Teacher getTeacherById(Integer id); -->
+    <select id="getTeacherById" resultMap="teacherMap">
+    <!--<select id="getTeacherById" resultMap="teacherMap" useCache="false">-->
+        <include refid="selectSql"></include>
+        where id=#{id}
+    </select>
+
+
+    <!-- if -->
+    <!-- public List<Teacher> getTeacherByCondition(Teacher teacher); -->
+    <select id="getTeacherByCondition" resultMap="teacherMap">
+        select * from t_teacher
+        <!-- 後面多出的and或者or where標籤不能解決
+            prefix="":前綴：trim標籤體中是整個字符串拼串 後的結果。
+                prefix給拼串後的整個字符串加一個前綴
+            prefixOverrides="":
+                前綴覆蓋： 去掉整個字符串前面多餘的字符
+            suffix="":後綴
+                suffix給拼串後的整個字符串加一個後綴
+            suffixOverrides=""
+                後綴覆蓋：去掉整個字符串後面多餘的字符
+        -->
+        <!-- 自定義字符串的截取規則 -->
+        <trim prefix="where" suffixOverrides="and">
+        <!--<where>-->
+            <if test="id!=null">
+                id > #{id}
+            </if>
+            <!-- 判斷空串''，雙引號的轉義字符&quot;
+                 and : && ，輸入&&時會報錯，需要用轉義字符&amp;和html裡一樣
+                 or : ||
+                 if() : 傳入非常強大的判斷條件，之前java中怎麼寫判斷這裡都可以; 叫OGNL表達式；
+                 轉義字符：https://www.w3school.com.cn/tags/html_ref_entities.html
+
+                    OGNL表達式； 對像導航圖Person下有三個屬性，address下又有三個屬性，street下又有三個屬性
+                                Person
+                                ===lastName
+                                ===email
+                                ===Address
+                                    ===city
+                                    ===province
+                                    ===street
+                                        ===adminName
+                                        ====info
+                                        ===perCount
+                        可用於方法，靜態方法，構造器等等等
+                        在mybatis中，傳入的參數可以用來判斷；
+                        額外還有兩個東西；
+                            _parmeter :代表傳入來的參數(<if test="_parmeter"></if>)
+                                １，單個參數 : _parmeter就代表這個參數
+                                ２，傳入多個參數 : _parmeter就代表多個參數集合起來的map
+                            _databaseId : 代表當前環境(<if test="_databaseId=='mysql'"></if>)標識數據庫
+                                如果配置了databaseIdProvider : _databaseId就有值
+                            <if test="_databaseId=='mysql">
+                                select * from abc
+                            </if>
+                 -->
+            <!--綁定一個表達式到變量-->
+            <!--<bind name="_name" value="'%'+name+'%'" />-->
+            <if test="name != null and !name.equals('')">
+                and teacherName like #{name}
+                <!--and teacherName like #{_name}-->
+            </if>
+            <if test="birth != null">
+                and birth_date &lt; #{birth}
+            </if>
+        <!--</where>-->
+        </trim>
+    </select>
+
+
+    <!--public List<Teacher> getTeacherByIdIn(List<Integer> ids);-->
+    <select id="getTeacherByIdIn" resultMap="teacherMap">
+        SELECT * FROM t_teacher WHERE id IN
+        <!--
+        collection: 要迭代的集合
+        item: 當前從集合中迭代出的元素
+        open: 開始字符
+        close:結束字符
+        separator: 元素與元素之間的分隔符
+        index:
+            迭代的是List集合: index表示的當前元素索引
+            迭代的Map集合:  index表示的當前元素的key
+
+            (#{id_item}, #{id_item}, #{id_item})
+
+        -->
+        <!--public List<Teacher> getTeacherByIdIn(@Param("ids")List<Integer> ids);-->
+        <!-- collection可寫List或是別名成@Param("ids")-->
+        <foreach collection="ids" item="id_item" separator="," open="(" close=")">
+           #{id_item}
+        </foreach>
+    </select>
+
+
+    <!--public List<Teacher> getTeacherByConditionChoose(Teacher teacher);-->
+    <select id="getTeacherByConditionChoose" resultMap="teacherMap">
+        select * from t_teacher
+        <where>
+            <!-- Choose One Match Case -->
+            <choose>
+                <when test="id!=null">id = #{id}</when>
+                <when test="name != null and !name.equals('')">teacherName = #{name}</when>
+                <when test="birth_date!=null">birth_date=#{birth}</when>
+                <otherwise>1=1</otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <!--public int updateTeacher(Teacher teacher);-->
+    <update id="updateTeacher">
+        UPDATE t_teacher
+        <set>
+            <if test="name!=null and !name.equals('')">
+                teacherName = #{name},
+            </if>
+            <if test="course!=null and !course.equals('')">
+                class_name = #{course},
+            </if>
+            <if test="address!=null and !address.equals('')">
+                address = #{address},
+            </if>
+            <if test="birth!=null">
+                birth_date = #{birth},
+            </if>
+        </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+
+
+
+</mapper>

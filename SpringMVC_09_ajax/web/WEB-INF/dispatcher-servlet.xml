@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd">
+
+    <!--對應src下的報名，需要自己新建-->
+    <context:component-scan base-package="com.atkjs927" />
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <!-- 這個配置是配置JSP頁面的位置，按照你自己的配置來配 -->
+        <property name="prefix" value="/WEB-INF/pages/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <!-- 管理國家化資源文件 -->
+    <bean class="org.springframework.context.support.ResourceBundleMessageSource" id="messgaeSource">
+        <property name="defaultEncoding" value="UTF-8" />
+        <!-- basename指定基礎名 -->
+        <property name="basename" value="resources.conf.errors"></property>
+        <property name="useCodeAsDefaultMessage" value="true" />
+    </bean>
+
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/">
+        <mvc:resource-chain resource-cache="false" auto-registration="false">
+            <mvc:resolvers>
+                <bean class="org.springframework.web.servlet.resource.WebJarsResourceResolver"></bean>
+                <bean class="org.springframework.web.servlet.resource.PathResourceResolver"></bean>
+            </mvc:resolvers>
+        </mvc:resource-chain>
+    </mvc:resources>
+
+    <!-- 默認前端控制器是攔截所有資源（除了jsp),js文件就會404，js文件是交個Tomcat處理 -->
+    <!-- 告訴SpringMVC，自己映射的請求就自己處理，不能處理的請求就直接交給tomcat -->
+    <mvc:default-servlet-handler/>
+    <!-- 靜態資源可以訪問，動態映射就不行了 -->
+    <!-- SpringMVC可以保證動態請求和靜態請求都能訪問 -->
+<!--    <mvc:annotation-driven></mvc:annotation-driven>-->
+
+
+    <!-- 告訴SpringMVC別用默認的ConversionService，用自定義的ConversionService -->
+    <!-- ConversionService創建的ConversionService組件是沒有格式化器存在的 -->
+    <!-- 以後寫自定義類型轉換器的時候就使用org.springframework.format.support.FormattingConversionServiceFactoryBean
+      即具有類型轉換，又具有格式化功能 -->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <!-- converters轉換器中添加我們自定義的類型轉換器 -->
+        <property name="converters">
+            <set>
+                <bean class="com.atkjs927.crud.component.MyStringToEmployeeConverter"></bean>
+            </set>
+        </property>
+    </bean>
+
+    <!-- conversion-service="conversionService" 使用自己配置的類型轉換組件  -->
+    <mvc:annotation-driven conversion-service="conversionService"></mvc:annotation-driven>
+
+</beans>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- Spring handle Components except Controllers -->
+    <context:component-scan base-package="com.atkjs927">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+    </context:component-scan>
+
+    <!-- DataSource -->
+    <!--
+        lots of issues here, it seems.
+        c3p0 doesn't know anything about a "jdbc.properties" file,
+        and yours contains a mix of c3p0 properties (that would not be recognized in any case with a jdbc. prefix)
+        and other properties entirely unknown to c3p0. – Steve Waldman Mar 26 '15 at 9:21
+        https://stackoverflow.com/questions/29271655
+    -->
+    <context:property-placeholder location="classpath:dbconfig.properties"/>
+    <bean id="ds" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxPoolSize" value="${jdbc.maxPoolSize}"></property>
+        <property name="minPoolSize" value="${jdbc.minPoolSize}"></property>
+    </bean>
+
+    <!-- Conf. SqlSessionFactoryBean -->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"/>
+        <property name="dataSource" ref="ds"/>
+        <property name="mapperLocations" value="classpath:mybatis/mapper/*.xml"/>
+    </bean>
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.atkjs927.dao"/>
+    </bean>
+
+    <!-- TransactionManager -->
+    <bean id="tm" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="ds"></property>
+    </bean>
+    <tx:annotation-driven transaction-manager="tm"/>
+
+    <!-- Declare Transaction Method -->
+    <bean id="teacherService" class="com.atkjs927.service.TeacherService"> </bean>
+    <aop:config>
+        <aop:pointcut expression="execution(* com.atkjs927.ser*.*.*(..))" id="txPoint"></aop:pointcut>
+        <!-- 事務建議，事務增強  advice-ref:指向事務管理器的配置-->
+        <aop:advisor advice-ref="myAdivce" pointcut-ref="txPoint"></aop:advisor>
+    </aop:config>
+    <tx:advice id="myAdivce" transaction-manager="tm">
+        <!-- Rules -->
+        <!-- 事務屬性 -->
+        <tx:attributes>
+            <!-- 指明哪些方法是事務方法：切入點只是說，事務管理器要切入這些方法，哪些方法要加事務使用tx:method說明 -->
+            <tx:method name="*" rollback-for="java.lang.Exception"/>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="insertEmp" isolation="READ_UNCOMMITTED"/>
+        </tx:attributes>
+    </tx:advice>
+
+</beans>

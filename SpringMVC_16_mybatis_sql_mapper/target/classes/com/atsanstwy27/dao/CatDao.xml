@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace：名稱空間，寫接口的全類名，相當於告訴MyBatis是實現哪個接口 -->
+<mapper namespace="com.atkjs927.dao.CatDao">
+    <!-- getCatById(Integer id) -->
+    <!-- resultType="com.atkjs927.bean.Cat":使用默認規則，屬性名列名一一對應
+         resultMap="myCat":查出數據封裝結果的時候，使用myCat自定義的結果集，
+     -->
+    <select id="getCatById" resultMap="myCat">
+        <!-- 這樣可以用起別名的方法配合resultType="com.lizhi.bean.Cat":使用默認規則，屬性名列名一一對應
+         select id,cname name,cAge age,cgender gender from t_cat where id=#{id} -->
+        <!-- 這樣不可以用 -->
+        select * from t_cat where id=#{id}
+    </select>
+
+
+    <!-- 自定義結果集(resultMap)，自己定義每一列數據和JavaBean的映射規則
+        type="" :制定要為哪個JavaBean自定義封裝規則,全類名
+        id="":唯一標識
+     -->
+    <resultMap type="com.atkjs927.bean.Cat" id="myCat">
+        <!-- 指定主鍵列的對應規則
+            column="id":指定那一列是主鍵列
+            property="":指定Cat.java文件裡的哪個屬性封裝id這一列數據
+        -->
+        <id property="id" column="id"/>
+        <!-- 普通列 -->
+        <result property="name" column="cName"/>
+        <result property="age" column="cAge"/>
+        <result property="gender" column="cgender"/>
+
+        <!--<association property=""></association>-->
+    </resultMap>
+
+</mapper>

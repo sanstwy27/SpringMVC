@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace：名稱空間，寫接口的全類名，相當於告訴MyBatis是實現哪個接口 -->
+<mapper namespace="com.atkjs927.dao.EmployeeDao">
+    <!-- public Employee getEmpById(Integer id); -->
+    <!-- select標籤用來定義一個查詢操作 ，
+         id:方法名，相當於這個配置是對於某個方法的實現
+         resultType：指定方法運行後的返回值類型，查詢操作必須指定的
+         #{屬性名}:代表取出傳遞過來的某個參數的值-->
+
+    <!--    public Employee getEmpById(Integer id);-->
+     <select id="getEmpById" resultType="com.atkjs927.bean.Employee">
+    <!-- Alias <select id="getEmpById" resultType="EMP"> -->
+    <!--<select id="getEmpById" resultType="Employee">-->
+    <!--<select id="getEmpById" resultType="anno_emp">-->
+        select * from t_employee where id=#{id}
+    </select>
+
+    <!--    public int updateEmployee(Employee employee);-->
+    <update id="updateEmployee">
+        update t_employee
+        set empname=#{empName}, gender=#{gender}, email=#{email}
+        where id=#{id}
+    </update>
+
+    <!--    public int deleteEmployee(Integer id);-->
+    <delete id="deleteEmployee">
+        delete from t_employee where id=#{id}
+    </delete>
+
+    <!--**
+       *
+       * SQL Mapper
+       *
+       *
+       -->
+
+    <!--讓mybatis自動地將自增id賦值給傳入的employee對象的id屬性
+        useGeneratedKeys 設置為 true: 原生jdbc獲取自增主鍵的方法，
+        keyProperty 將剛才自增的id封裝給哪個屬性
+    -->
+    <!--    public int insertEmployee(Employee employee);-->
+    <insert id="insertEmployee" useGeneratedKeys="true" keyProperty="id">
+        insert into t_employee(empname, gender, email)
+        values(#{empName}, #{gender}, #{email})
+    </insert>
+
+    <!-- 若DB不支持自增，可以用此方法 -->
+    <insert id="insertEmployee2">
+        <selectKey order="BEFORE" resultType="integer" keyProperty="id">
+            select max(id) + 1 from t_employee
+        </selectKey>
+        insert into t_employee(id, empname, gender, email)
+        values(#{id}, #{empName}, #{gender}, #{email})
+    </insert>
+
+
+    <!-- 現象：
+        1.傳入單個參數：
+            １基本類型：
+                取值：#{隨便寫}
+            ２傳入pojo:
+        2.多個參數：
+            public Employee getEmpByIdAndEmpname(Integer id,String empname);
+            取值：#{參數名}的方式無效
+            可以用id=#{param1} and empname=#{param2}或者改成arg1, arg0的方式
+            原因：只要傳入了多個參數MyBatis會自動的將這些參數封裝在map中，封裝是使用的key就是參數的索引和參數的第幾個表示
+                Map<String,Object> map = new HashMap<>();
+                map.put("arg1",傳入的值);map.put("arg1","傳入的值")；
+            #{Key}就是從map中取值
+        3.@param:為參數指定key;命名參數；推薦使用此方法
+         我們可以告訴MyBatis，封裝參數map的時候別亂來，使用我們指定的Key
+            public Employee getEmpByIdAndEmpname(@Param("id")Integer id,@Param("empname")String empname);
+        4.傳入pojo(javaBean)
+            取值：#{pojo的屬性名}
+        5.傳入map:將多個要使用的參數封裝起來
+            取值：#{key}
+        擴展：多個參數：自動封裝map;多種方式混合
+        method01(@param("id")Integer id,String empname,Employee employee);
+        Integwe id ->#{id}
+        String empname -> #{param2}
+        Employee employee (取出這個裡面的email) ->#{param3.email}
+
+        無論傳入什麼參數都要能正確的取出值；
+        #{key/屬性名}
+        1. #{key}取值的時候可以設置一些規則
+            id=#{id,jdbcType=INTEFER}都是自動配置的所以可以不寫
+            javaType,jdbcType,mode,numericScale,resultMap.typeHandler,jdbcTypeName,expression
+            只有jdbcType才可能是需要被指定的，默認不指定jdbcType，mysql沒問題，oracle沒問題，
+            萬一傳入的數據是null,mysql插入null沒問題，【oracle不指定null到底是什麼類型】
+
+        實際上在MyBatis中，有兩種取值方式：
+            #{屬性名}: 是參數預編譯的方式，參數的位置都是用？替代，參數後來都是預編譯設置進去的；安全，不會有sql注入的問題
+            ${屬性名}: 不是參數預編譯，而是直接和sql語句進行拼串；不安全，就是將參數直接放在指定的位置運行
+                     //id= '傳入的字符串' and empname=
+                      如果傳入'1 or 1=1 or'，則不管and後面有沒有東西or 後面的 1=1永遠是true，就會通過驗證訪問數據庫的內容，這就是sql注入
+                    ${屬性名}用處：sql語句只有參數位置是支持預編譯的,表名等不支持預編譯；假設有一個數據庫裡面有兩張日誌表
+                        log_2019_11,log_2019_12
+                        select * from log_2019_11 where id=? and empname=?
+                        需求，id,empname固定查詢不同日誌表裡的日誌
+                    解決辦法：在getEmployeeAndEmpname方法裡測試
+                        採取這種方法可行select * from ${tablename} where id=#{id} and empname=#{empname}
+
+            在getEmployeeAndEmpname方法裡測試
+            id=${id} and empname=#{empname}
+            打印的日誌	select * from t_employee where id=1 and empname=?
+
+            id=#{id} and empname=#{empname}
+            打印的日誌 select * from t_employee where id=? and empname=?
+
+            一般使用#{}因為安全，在不支持參數預編譯的位置要進行取值就使用${};
+    -->
+    <!-- Available parameters are [arg1, arg0, param1, param2] -->
+    <select id="getEmpByIdAndEmpName" resultType="com.atkjs927.bean.Employee">
+        select * from t_employee where id=#{arg0} and empname=#{arg1}
+    </select>
+    <select id="getEmpByIdAndEmpName2" resultType="com.atkjs927.bean.Employee">
+        select * from t_employee where id=${id} and empname=#{empName}
+    </select>
+    <!-- Error
+    <select id="getEmpByIdAndEmpName3" resultType="com.atkjs927.bean.Employee">
+        select * from ${tablename} where id=${id} and empname=#{empName}
+    </select>
+    -->
+    <select id="getEmpByIdAndEmpName3" resultType="com.atkjs927.bean.Employee">
+        select * from ${tablename} where id=${id} and empname=#{empName}
+    </select>
+
+
+    <select id="getAllEmps" resultType="com.atkjs927.bean.Employee">
+        select * from t_employee
+    </select>
+
+
+    <select id="getEmpByIdReturnMap" resultType="map">
+        select * from t_employee where id=${id}
+    </select>
+
+
+    <select id="getAllEmpsReturnMap" resultType="com.atkjs927.bean.Employee">
+        select * from t_employee
+    </select>
+
+
+</mapper>

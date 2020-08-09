@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 自定義關聯查詢 -->
+<mapper namespace="com.atkjs927.dao.KeyDao">
+
+    <!-- public List<Key> getKeysByLockId(Integer id); -->
+    <!-- id	keyname	lockid -->
+    <select id="getKeysByLockId" resultType="com.atkjs927.bean.Key">
+        select * from t_key where lockid=#{id}
+    </select>
+
+
+
+    <!-- public Key getKeyByIdSimple(Integer id); -->
+    <!-- 可以帶上lock訊息 -->
+    <!-- id	keyname	lockid -->
+    <select id="getKeyByIdSimple" resultMap="mySimple">
+        select * from t_key where id=#{id}
+    </select>
+    <resultMap id="mySimple" type="com.atkjs927.bean.Key">
+        <id property="id" column="id"/>
+        <result property="keyName" column="keyname"/>
+        <!-- 告訴mybatis去查lock, 帶入的參數是lockid -->
+        <association property="lock" select="com.atkjs927.dao.LockDao.getLockByIdSimple" column="lockid"></association>
+    </resultMap>
+
+
+
+    <!-- getKeyById(Integer id) -->
+    <!--
+        private Integer id;
+        private String keyName;
+        private Lock lock;
+
+        複雜關聯不能直接使用bean來接
+        id	keyname	lockid	id	lockname
+    -->
+    <select id="getKeyById" resultMap="myKey">
+        SELECT tk.id kid, tk.keyname keyname, tk.lockid lockid, tl.id lid, tl.lockname lockname
+        FROM	t_key tk LEFT JOIN t_lock tl ON tk.lockid = tl.id
+        WHERE tk.id = #{id}
+    </select>
+
+    <!-- Method1  -->
+    <!--
+    <resultMap id="myKey" type="com.atkjs927.bean.Key">
+        <id property="id" column="kid"/>
+        <result property="keyName" column="keyname"/>
+        <result property="lock.id" column="lockid"/>
+        <result property="lock.lockName" column="lockname"/>
+    </resultMap>
+    -->
+
+    <!-- Method2  -->
+    <resultMap id="myKey" type="com.atkjs927.bean.Key">
+        <id property="id" column="kid"/>
+        <result property="keyName" column="keyname"/>
+        <association property="lock" javaType="com.atkjs927.bean.Lock">
+            <id property="id" column="lockid"/>
+            <result property="lockName" column="lockname"/>
+        </association>
+    </resultMap>
+
+</mapper>
